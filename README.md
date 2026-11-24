@@ -1,4 +1,12 @@
-<p align="center"><img src="docs/logo.png" width="128" alt="Kraken Mount"></p>
+<p align="center"><img src="docs/logo.png" width="128" alt="Kraken Mount Plus"></p>
+
+# Kraken Mount Plus
+
+Kraken Mount Plus is [Kraken Mount](https://github.com/quer3q/kraken-mount) by quer3q with every image
+format of [ShadowMount+](https://github.com/drakmor/ShadowMountPlus) added (`.exfat`, `.ffpkg`, `.ffpfs`,
+`.ffpfsc`) and a per-game switch to turn off ampr-emu-ng for games that crash with it. All credit for
+Kraken Mount itself goes to its authors; the changes in this fork are listed in [What is new](#what-is-new).
+These changes are also offered upstream; if they are merged, use the original Kraken Mount.
 
 A PS5 game mounter. It finds games on the internal SSD, the M.2 drive and USB drives.
 
@@ -9,7 +17,7 @@ For large, demanding games, use the zstd pack format: it performs better than FP
 
 ## How to
 
-1. Download `kraken-mount.elf` from [Releases](https://github.com/quer3q/kraken-mount/releases)
+1. Download `kraken-mount.elf` from [Releases](https://github.com/sakulsol/kraken-mount-plus/releases)
    and send it to your jailbroken PS5 with the ELF loader (elfldr, port 9021) or payload-manager:
    `nc -w 3 <ps5-ip> 9021 < kraken-mount.elf`. kstuff must be loaded, and ShadowMount+ must not be
    running: Kraken Mount waits until both are true.
@@ -34,6 +42,21 @@ Caches live in `/data/krakenmount/caches/<TITLE_ID>`, settings in
 `/data/krakenmount/config.toml` and the log in `/data/krakenmount/kraken.log`.
 
 To build it yourself: `ps5/build.sh` (needs Docker), output `target/ps5/kraken-mount.elf`.
+
+## What is new
+
+Compared with Kraken Mount 0.3.1:
+
+- **Image files**: `.exfat`, `.ffpkg` (UFS), `.ffpfs` (PFS) and `.ffpfsc` (compressed PFS container)
+  are found like any other game, attached through `/dev/lvdctl` and mounted read-only under
+  `/mnt/krakenmount`, with the same LVD profiles as ShadowMount+. They show an IMG chip and their
+  extension in the web UI; ejecting a game releases its image.
+- **ampr-emu-ng per game**: a switch in the game's details (setting `ampr_off`) keeps the bundled
+  ampr-emu-ng out of that game's fakelib. Some games (for example Days Gone and Hogwarts Legacy)
+  only start with it off.
+- **Issue reports** name the image file a game was mounted from.
+
+Tested on a PS5 with firmware 12.60.
 
 ## Thanks
 
