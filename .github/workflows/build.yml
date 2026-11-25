@@ -81,15 +81,21 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: payload
-      - name: Create draft release
+      - name: Attach to the release (or create a draft)
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
           sha256sum -c SHA256SUMS
-          gh release create "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "Kraken Mount Plus $TAG" \
-            --draft \
-            --generate-notes \
-            kraken-mount-plus.elf SHA256SUMS
+          # A release made on GitHub (which creates the tag) gets the files attached; a pushed tag
+          # without a release gets a draft.
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber kraken-mount-plus.elf SHA256SUMS
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Kraken Mount Plus $TAG" \
+              --draft \
+              --generate-notes \
+              kraken-mount-plus.elf SHA256SUMS
+          fi
