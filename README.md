@@ -6,7 +6,10 @@ Kraken Mount Plus is [Kraken Mount](https://github.com/quer3q/kraken-mount) by q
 format of [ShadowMount+](https://github.com/drakmor/ShadowMountPlus) added (`.exfat`, `.ffpkg`, `.ffpfs`,
 `.ffpfsc`) and a per-game switch to turn off ampr-emu-ng for games that crash with it. All credit for
 Kraken Mount itself goes to its authors; the changes in this fork are listed in [What is new](#what-is-new).
-These changes are also offered upstream; if they are merged, use the original Kraken Mount.
+These changes are also offered upstream ([pull request](https://github.com/quer3q/kraken-mount/pull/129)); if
+they are merged, use the original Kraken Mount. Kraken Mount Plus keeps Kraken Mount's data folder
+(`/data/krakenmount`), so your settings carry over; run one or the other, not both. Its self-update and
+payload-manager catalog follow Kraken Mount Plus's own releases, never upstream's.
 
 A PS5 game mounter. It finds games on the internal SSD, the M.2 drive and USB drives.
 
@@ -17,9 +20,9 @@ For large, demanding games, use the zstd pack format: it performs better than FP
 
 ## How to
 
-1. Download `kraken-mount.elf` from [Releases](https://github.com/sakulsol/kraken-mount-plus/releases)
+1. Download `kraken-mount-plus.elf` from [Releases](https://github.com/sakulsol/kraken-mount-plus/releases)
    and send it to your jailbroken PS5 with the ELF loader (elfldr, port 9021) or payload-manager:
-   `nc -w 3 <ps5-ip> 9021 < kraken-mount.elf`. ShadowMount+ must not be running: Kraken Mount waits
+   `nc -w 3 <ps5-ip> 9021 < kraken-mount-plus.elf`. ShadowMount+ must not be running: Kraken Mount waits
    until it stops. kstuff is not needed to start Kraken Mount, but a fake-signed game needs it to start; when such
    a game fails to start without it, Kraken Mount shows a notification.
 2. Put each game in a scan root, or in a folder directly inside one (for example
@@ -72,11 +75,11 @@ game's details. Details:
 Caches live in `/data/krakenmount/caches/<TITLE_ID>`, settings in
 `/data/krakenmount/config.toml` and the log in `/data/krakenmount/kraken.log`.
 
-To build it yourself: `ps5/build.sh` (needs Docker), output `target/ps5/kraken-mount.elf`.
+To build it yourself: `ps5/build.sh` (needs Docker), output `target/ps5/kraken-mount.elf` (released as `kraken-mount-plus.elf`).
 
 ## What is new
 
-Compared with Kraken Mount 0.3.1:
+Kraken Mount Plus 1.1.0 is based on Kraken Mount 0.4.0. Compared with it:
 
 - **Image files**: `.exfat`, `.ffpkg` (UFS), `.ffpfs` (PFS) and `.ffpfsc` (compressed PFS container)
   are found like any other game, attached through `/dev/lvdctl` and mounted read-only under

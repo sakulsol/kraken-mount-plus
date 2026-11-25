@@ -60,13 +60,13 @@ jobs:
         run: ./ps5/build.sh
       - name: sha256
         run: |
-          cp target/ps5/kraken-mount.elf .
-          sha256sum kraken-mount.elf | tee SHA256SUMS
+          cp target/ps5/kraken-mount.elf kraken-mount-plus.elf
+          sha256sum kraken-mount-plus.elf | tee SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: payload
           path: |
-            kraken-mount.elf
+            kraken-mount-plus.elf
             SHA256SUMS
           if-no-files-found: error
 
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: payload
-      - name: Create draft release
+      - name: Attach to the release (or create a draft)
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
@@ -92,10 +92,16 @@ jobs:
           [ "$TAG" = "v$version" ] || { echo "tag $TAG is not v$version (Cargo.toml)" >&2; exit 1; }
           sha256sum -c SHA256SUMS
           # The ps5-payload-manager catalog; SHA256SUMS does not list it.
-          ./ps5/make-payloads-json.sh kraken-mount.elf payloads.json
-          gh release create "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "$TAG" \
-            --draft \
-            --generate-notes \
-            kraken-mount.elf SHA256SUMS payloads.json
+          ./ps5/make-payloads-json.sh kraken-mount-plus.elf payloads.json
+          # A release made on GitHub (which creates the tag) gets the files attached; a pushed tag
+          # without a release gets a draft.
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber kraken-mount-plus.elf SHA256SUMS payloads.json
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Kraken Mount Plus $TAG" \
+              --draft \
+              --generate-notes \
+              kraken-mount-plus.elf SHA256SUMS payloads.json
+          fi

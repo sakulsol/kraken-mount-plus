@@ -33,11 +33,11 @@ version=$(tr -d '\r' < "$root/Cargo.toml" | sed -n 's/^version = "\(.*\)"$/\1/p'
 [[ $version =~ ^[0-9A-Za-z.+-]+$ ]] ||
   { echo "make-payloads-json.sh: odd version '$version'" >&2; exit 1; }
 [[ -f $elf ]] || { echo "make-payloads-json.sh: $elf is not a file" >&2; exit 1; }
-asset=kraken-mount.elf
+asset=kraken-mount-plus.elf
 [[ $(basename "$elf") == "$asset" ]] ||
   { echo "make-payloads-json.sh: $elf is not named $asset" >&2; exit 1; }
 
-repo=${GITHUB_REPOSITORY:-quer3q/kraken-mount}
+repo=${GITHUB_REPOSITORY:-sakulsol/kraken-mount-plus}
 [[ $repo =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] ||
   { echo "make-payloads-json.sh: odd repository '$repo'" >&2; exit 1; }
 date=${PAYLOADS_DATE:-$(date -u +%F)}
@@ -48,19 +48,19 @@ sha=$(sha256sum -- "$elf" | cut -d' ' -f1)
 
 printf '%s\n' \
   '{' \
-  '  "name": "Kraken Mount",' \
+  '  "name": "Kraken Mount Plus",' \
   '  "payloads": [' \
   '    {' \
-  '      "id": "kraken-mount",' \
-  '      "name": "Kraken Mount",' \
-  '      "filename": "kraken-mount.elf",' \
+  '      "id": "kraken-mount-plus",' \
+  '      "name": "Kraken Mount Plus",' \
+  '      "filename": "kraken-mount-plus.elf",' \
   "      \"url\": \"https://github.com/$repo/releases/download/v$version/$asset\"," \
   "      \"version\": \"v$version\"," \
   "      \"last_update\": \"$date\"," \
-  '      "description": "Plays PS5 games from the internal SSD and USB drives (debug FPKG .pkg files and game folders) without installing them, or installs FPKGs through the console installer. The web UI opens on port 8097.",' \
+  '      "description": "Plays PS5 games from the internal SSD and USB drives (debug FPKG .pkg files, game folders and ShadowMount+ images) without installing them, or installs FPKGs through the console installer. The web UI opens on port 8097.",' \
   '      "category": "Utilities & Tools",' \
   "      \"checksum\": \"$sha\"," \
-  '      "author": "quer3q",' \
+  '      "author": "quer3q, sakulsol (Plus)",' \
   "      \"source\": \"https://github.com/$repo\"," \
   "      \"details_url\": \"https://github.com/$repo#readme\"" \
   '    }' \

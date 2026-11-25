@@ -9,8 +9,9 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::time::Duration;
 
-const RELEASE_URL: &str = "https://api.github.com/repos/quer3q/kraken-mount/releases/latest";
-const ASSET: &str = "kraken-mount.elf";
+// Kraken Mount Plus updates from its own releases, so an update never swaps it for upstream Kraken Mount.
+const RELEASE_URL: &str = "https://api.github.com/repos/sakulsol/kraken-mount-plus/releases/latest";
+const ASSET: &str = "kraken-mount-plus.elf";
 const MAX: usize = 32 << 20;
 const ELFLDR: ([u8; 4], u16) = ([127, 0, 0, 1], 9021);
 const RUNNING: &str = env!("CARGO_PKG_VERSION");
