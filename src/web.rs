@@ -121,6 +121,7 @@ fn game_json(g: &Game, playgo_off: Option<&[String]>, crash: Option<&crate::cras
         "path": g.src.path.to_string_lossy(),
         "kind": kind,
         "packing": packing,
+        "image": g.src.image.as_ref().map(|i| i.to_string_lossy()),
         "drive": g.src.drive,
         "size": g.src.size,
         "status": g.status,
@@ -562,6 +563,7 @@ fn route(state: &State, head: &str, body: &[u8], loopback: bool) -> Reply {
             no_content()
         }
         ("POST", p) if p.starts_with("/api/playgo/") => post_playgo(state, &p["/api/playgo/".len()..], body),
+        ("POST", p) if p.starts_with("/api/ampr_title/") => post_ampr_title(state, &p["/api/ampr_title/".len()..], body),
         ("POST", p) if p.starts_with("/api/overlay/") => post_overlay(state, &p["/api/overlay/".len()..], body),
         ("POST", p) if p.starts_with("/api/v1/") => v1(state, &p["/api/v1/".len()..], body),
         ("POST", p) if p.starts_with("/api/rebuild/") => rebuild(state, &p["/api/rebuild/".len()..]),
@@ -632,6 +634,9 @@ fn post_settings(state: &State, body: &[u8]) -> Reply {
     if v.get("playgo_off").is_none() {
         s.playgo_off.clone_from(&file.playgo_off);
     }
+    if v.get("ampr_off").is_none() {
+        s.ampr_off.clone_from(&file.ampr_off);
+    }
     let sent_overlay = v.get("overlay_off").is_some();
     if !sent_overlay {
         s.overlay_off.clone_from(&file.overlay_off);
@@ -686,6 +691,27 @@ fn post_playgo(state: &State, tid: &str, body: &[u8]) -> Reply {
         return reply(500, "text/plain", e.to_string());
     }
     log!("{tid}: PlayGo stub {}", if off { "off" } else { "on" });
+    no_content()
+}
+
+/// POST /api/ampr_title/<TID>, body `on` or `off`: ampr-emu-ng for one folder game (ampr_off). The
+/// game's own fakelib/ and the emulators stay; a pkg always gets ampr-emu-ng (its pkg mode).
+fn post_ampr_title(state: &State, tid: &str, body: &[u8]) -> Reply {
+    let Some(src) = Some(tid).filter(|t| crate::scan::valid_tid(t)).and_then(|t| state.source(t)) else {
+        return not_found();
+    };
+    let off = match body {
+        b"on" => false,
+        b"off" => true,
+        _ => return reply(400, "text/plain", "expected on or off"),
+    };
+    if off && src.kind == Kind::Pkg {
+        return reply(409, "text/plain", "a pkg game needs ampr-emu-ng (its pkg mode)");
+    }
+    if let Err(e) = change_settings(state, &format!("{tid}: ampr-emu-ng"), |s| set_member(&mut s.ampr_off, tid, off)) {
+        return reply(500, "text/plain", e.to_string());
+    }
+    log!("{tid}: ampr-emu-ng {}", if off { "off" } else { "on" });
     no_content()
 }
 
@@ -782,7 +808,10 @@ fn report_text(g: &Game, s: &Settings, ampr: &serde_json::Value, crash: Option<&
         Kind::Folder(Packing::Lz4) => "folder (lz4)",
         Kind::Installed => "installed",
     };
-    let ampr = format!("{} {}", ampr["kind"].as_str().unwrap_or("?"), ampr["version"].as_str().unwrap_or("")).trim_end().to_string();
+    let mut ampr = format!("{} {}", ampr["kind"].as_str().unwrap_or("?"), ampr["version"].as_str().unwrap_or("")).trim_end().to_string();
+    if matches!(src.kind, Kind::Folder(_)) && s.inject_ampr && s.ampr_off.iter().any(|t| *t == src.title_id) {
+        ampr += " (off for this game: ampr_off)";
+    }
     let playgo = if !s.add_emulators { "not added (add_emulators off)" }
         else if s.playgo_off.iter().any(|t| *t == src.title_id) { "off" } else { "on" };
     let crash = crash.map_or("none recorded".to_string(), |c| {
@@ -794,6 +823,9 @@ fn report_text(g: &Game, s: &Settings, ampr: &serde_json::Value, crash: Option<&
         env!("CARGO_PKG_VERSION"), src.title_name, src.title_id, src.version, src.path.display(), src.drive,
         g.status, g.error.as_deref().map_or(String::new(), |e| format!(" ({e})")),
     );
+    if let Some(image) = &src.image {
+        out += &format!("Image: {}\n", image.display());
+    }
     let lines: Vec<&str> = log.lines().filter(|l| l.contains(src.title_id.as_str())).collect();
     out += &format!("\nkraken.log, last {} lines with {}:\n", REPORT_LOG_LINES, src.title_id);
     for l in &lines[lines.len().saturating_sub(REPORT_LOG_LINES)..] {
@@ -808,7 +840,10 @@ fn api_state(state: &State) -> Vec<u8> {
         let s = state.settings.lock().unwrap();
         s.add_emulators.then(|| s.playgo_off.clone())
     };
-    let overlay_off = state.settings.lock().unwrap().overlay_off.clone();
+    let (overlay_off, ampr_off) = {
+        let s = state.settings.lock().unwrap();
+        (s.overlay_off.clone(), s.ampr_off.clone())
+    };
     let crashes = crate::crash::load();
     // A rebuild asked for but not started yet (the pass picks it up, or a game is running).
     let queued = state.forced.lock().unwrap().clone();
@@ -825,6 +860,8 @@ fn api_state(state: &State) -> Vec<u8> {
         // Only the installed row: the Retail badge is the install's, not a .pkg's.
         v["retail"] = (g.src.kind == Kind::Installed && have.is_some_and(|h| h.1)).into();
         v["rebuild_queued"] = queued.contains(&g.src.title_id).into();
+        // The per-game ampr-emu-ng switch (folder games only: a pkg always gets it).
+        v["ampr_off"] = ampr_off.iter().any(|t| *t == g.src.title_id).into();
         v["registered"] = registered.into();
         v["mounted"] = mounted.into();
         v["source_present"] = present.into();
@@ -1067,7 +1104,7 @@ fn delete_source(state: &State, body: &[u8]) -> Reply {
         if settings.scan_paths.is_empty() { storage::default_scan_roots() } else { settings.scan_paths.clone() }
     };
     let src = Source { path: path.clone(), kind: Kind::Pkg, title_id: tid.clone(), title_name: String::new(),
-        version: String::new(), drive: String::new(), size: 0, backport: None };
+        version: String::new(), drive: String::new(), size: 0, backport: None, image: None };
     if let Err(reason) = safe_delete_source(&src, &roots) {
         log!("{tid}: delete of the installed .pkg {} rejected: {reason}", path.display());
         return reply(409, "text/plain", reason);
@@ -1103,6 +1140,7 @@ fn sizes(state: &State, tid: &str) -> Reply {
             log!("{tid}: stat {}: {e}", src.path.display());
             src.size
         }),
+        Kind::Folder(_) if src.image.is_some() => src.size,
         Kind::Folder(_) => cache::du(&src.path),
         // app.pkg's size, or the ext copy's du (installed::list).
         Kind::Installed => src.size,
@@ -1606,7 +1644,7 @@ extern "C" {
 
 /// (mount point, source, fsid) of every mount. getfsstat into our own buffer: ps5/compat.c's
 /// getmntinfo shares one static buffer with the launch watcher's thread.
-fn mount_table() -> std::io::Result<Vec<(String, String, u64)>> {
+pub(crate) fn mount_table() -> std::io::Result<Vec<(String, String, u64)>> {
     let mut extra = 8; // room for mounts added between the two calls
     for _ in 0..4 {
         let n = unsafe { libc::getfsstat(std::ptr::null_mut(), 0, libc::MNT_NOWAIT) };
@@ -1712,6 +1750,20 @@ fn eject(state: &State, body: &[u8]) -> Reply {
     for tid in tids {
         if let Err(e) = register::unmount_title(tid) {
             log!("eject {path}: {tid}: unmount: {e}");
+            drop(work);
+            state.wake();
+            return reply(409, "text/plain", e.to_string());
+        }
+    }
+    // Images on the drive (.exfat/.ffpkg/.ffpfs/.ffpfsc): inner images and titles, then the image
+    // mounts (they keep the drive busy).
+    let prefix = format!("{path}/");
+    for (mp, image) in crate::image::mounts() {
+        if !image.to_string_lossy().starts_with(&prefix) {
+            continue;
+        }
+        if let Err(e) = crate::image::release_tree(&mp, &mounts) {
+            log!("eject {path}: image {}: {e}", image.display());
             drop(work);
             state.wake();
             return reply(409, "text/plain", e.to_string());

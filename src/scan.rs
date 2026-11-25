@@ -41,9 +41,12 @@ pub struct Source {
     pub version: String,
     /// Mount of the drive holding `path` ("/data", "/mnt/usb0").
     pub drive: String,
-    /// .pkg file size; 0 for folders.
+    /// .pkg or image file size; 0 for folders.
     pub size: u64,
     pub backport: Option<PathBuf>,
+    /// The .exfat/.ffpkg/.ffpfs/.ffpfsc image holding the game folder `path` (mounted under
+    /// image::MOUNT_BASE; a .ffpfsc's game is in its inner image's mount).
+    pub image: Option<PathBuf>,
 }
 
 pub struct ScanResult {
@@ -499,7 +502,7 @@ pub fn excluded(path: &Path, exclude: &[String]) -> bool {
     exclude.iter().any(|e| path.starts_with(e))
 }
 
-/// Finds the sources under `roots`: the .pkg files and game folders (eboot.bin and
+/// Finds the sources under `roots`: the .pkg files, image files (`crate::image`) and game folders (eboot.bin and
 /// sce_sys/param.json) directly in a root, and those one folder below it (see `candidates`).
 /// A source in `exclude` (see `excluded`) is skipped before it can claim its title id.
 /// Installed games (installed::list) claim first, at rank 0; `installing` (the title whose base
@@ -521,7 +524,7 @@ pub fn scan(roots: &[String], exclude: &[String], backports: bool, stability_wai
             drive: crate::storage::drive_of(&g.path),
             backport: if backports { backport_for(owner, roots, &g.title_id) } else { None },
             kind: Kind::Installed, size: g.size, path: g.path,
-            title_id: g.title_id, title_name: g.title_name, version: g.version,
+            title_id: g.title_id, title_name: g.title_name, version: g.version, image: None,
         }))
         .collect();
     claim_installed(&mut seen, &mut games, &mut result.duplicates, installing, installed);
@@ -536,7 +539,7 @@ pub fn scan(roots: &[String], exclude: &[String], backports: bool, stability_wai
         later.extend(nested.into_iter().map(|p| (root, p, true)));
     }
     order.extend(later);
-    for (root, path, nested) in order {
+    for (root, mut path, nested) in order {
         let metadata = match fs::metadata(&path) {
             Ok(metadata) => metadata,
             Err(e) => {
@@ -544,7 +547,30 @@ pub fn scan(roots: &[String], exclude: &[String], backports: bool, stability_wai
                 continue;
             }
         };
-        let (kind, size, param) = if metadata.is_file()
+        let mut image = None;
+        let (kind, size, param) = if metadata.is_file() && crate::image::is_image(&path) {
+            // Before the image is attached: a half-copied image is not mounted. The title id is
+            // the one of an earlier cache of a folder in its mount point, if any.
+            if let Some(age) = still_written(std::slice::from_ref(&path), stability_wait) {
+                let mp = crate::image::mount_point(&path);
+                let tid = cached.iter().find(|(s, _)| s.starts_with(&mp)).map(|(_, t)| t.clone());
+                if let Some(t) = &tid {
+                    claim(&mut seen, &mut games, &mut result.duplicates, t, rank(Kind::Folder(Packing::Plain)), nested, None);
+                }
+                skip_unstable(&mut result, path, tid, age);
+                continue;
+            }
+            let dir = match crate::image::ensure(&path) {
+                Ok(dir) => dir,
+                Err(e) => {
+                    scan_error(&mut result, path, e);
+                    continue;
+                }
+            };
+            let param = read_param(&dir).and_then(|json| parse_param(&json)).map_err(|e| e.to_string());
+            image = Some(std::mem::replace(&mut path, dir));
+            (Kind::Folder(packing(&path)), metadata.len(), param)
+        } else if metadata.is_file()
             && path.extension().is_some_and(|e| e.eq_ignore_ascii_case("pkg")) {
             // Before the pkg is opened: a half-copied header is not parsed. The title id is
             // the one of an earlier cache of this path, if any.
@@ -614,9 +640,9 @@ pub fn scan(roots: &[String], exclude: &[String], backports: bool, stability_wai
             continue;
         }
         let source = Source {
-            drive: crate::storage::drive_of(&path),
+            drive: crate::storage::drive_of(image.as_deref().unwrap_or(&path)),
             backport: if backports { backport_for(root, roots, &title_id) } else { None },
-            path, kind, title_id, title_name, version, size,
+            path, kind, title_id, title_name, version, size, image,
         };
         let (tid, rank) = (source.title_id.clone(), rank(source.kind));
         claim(&mut seen, &mut games, &mut result.duplicates, &tid, rank, nested, Some(source));
@@ -666,7 +692,7 @@ pub fn read_source(path: &Path) -> Option<Source> {
         };
     Some(Source {
         path: path.to_path_buf(), kind, title_id, title_name, version, size,
-        drive: crate::storage::drive_of(path), backport: None,
+        drive: crate::storage::drive_of(path), backport: None, image: None,
     })
 }
 

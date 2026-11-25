@@ -9,7 +9,8 @@ and USB/extended drives, keeps a per-game cache on the internal SSD, registers e
 screen without installing it, and at launch mounts the game's fakelib plus ampr-emu-ng into the game
 sandbox. Web UI on port 8097 (opened from the "Kraken Mount" home-screen tile).
 
-- Sources: debug FPKG `.pkg` files and game folders (plain, zstd or LZ4 AMPR packs), plus games installed on the
+- Sources: debug FPKG `.pkg` files, game folders (plain, zstd or LZ4 AMPR packs) and `.exfat`/`.ffpkg`/`.ffpfs`/`.ffpfsc`
+  images (mounted read-only, then a folder source; `src/image.rs`), plus games installed on the
   console (`/user/app`, extended storage), which are never mounted. FPKG games and patch/DLC `.pkg` files can be
   installed through the console installer (game sheet Install for FPKG games, Install tab for patch/DLC). Nothing
   else.
@@ -30,6 +31,7 @@ sandbox. Web UI on port 8097 (opened from the "Kraken Mount" home-screen tile).
 | `src/config.rs` | `/data/krakenmount/config.toml` settings |
 | `src/storage.rs` | drives and default scan roots |
 | `src/scan.rs` | game discovery, backports, duplicates (rank: installed, FPKG, zstd, LZ4, plain), patch/DLC packages |
+| `src/image.rs` | game images (exFAT, UFS, PFS, PFSC): LVD attach, read-only mount, release |
 | `src/installed.rs` | games installed on the console, the `installing/<TID>` markers, the retail check |
 | `src/crash.rs` | crash reports (`crashes.json`), the last crash per title |
 | `src/install.rs` | the install queue and job, the loopback `.pkg` Range server, the installer FFI |

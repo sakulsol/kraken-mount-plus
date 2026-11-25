@@ -399,6 +399,8 @@ pub fn fix_access(src: &Source) {
                 }
             }
         }
+        // A read-only image mount: chmod would only fail (EROFS) on every file.
+        Kind::Folder(_) if src.image.is_some() => {}
         Kind::Folder(_) => a.tree(&src.path, 0o555, 0o444),
         // The system's install: never chmod'ed from here.
         Kind::Installed => {}
@@ -649,11 +651,11 @@ fn ampr_state(src: &Source, s: &Settings) -> serde_json::Value {
 
 /// Whether fakelib/ gets the ampr dir's files: always for a pkg (#73: pkg mode exists only in
 /// ampr-emu-ng, the package's own libSceAmpr.sprx cannot read the .pkg named in kraken.image);
-/// a folder with inject_ampr; an installed game with ampr_installed.
+/// a folder with inject_ampr unless the title is in ampr_off; an installed game with ampr_installed.
 fn injects_ampr(src: &Source, s: &Settings) -> bool {
     match src.kind {
         Kind::Pkg => true,
-        Kind::Folder(_) => s.inject_ampr,
+        Kind::Folder(_) => s.inject_ampr && !s.ampr_off.iter().any(|t| *t == src.title_id),
         Kind::Installed => s.ampr_installed,
     }
 }
@@ -976,7 +978,7 @@ pub fn check(src: &Source, s: &Settings) -> Fresh {
     // Only "ampr", "emus" and "overlay_off" count: the "playgo" memo never triggers a refresh.
     let new = fakelib_state(src, s);
     if ["ampr", "emus", "overlay_off"].iter().any(|&k| had.get(k) != new.get(k)) {
-        return Fresh::Fakelib(format!("{AMPR_DIR}, inject_ampr, ampr_installed, the bundled emulators, playgo_off or overlay_off changed"));
+        return Fresh::Fakelib(format!("{AMPR_DIR}, inject_ampr, ampr_installed, the bundled emulators, playgo_off, overlay_off or ampr_off changed"));
     }
     Fresh::Fresh
 }

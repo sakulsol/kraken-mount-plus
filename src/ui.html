@@ -989,6 +989,9 @@ html.kbd .sheet button.primary:focus { background: var(--accent); border-color: 
       <label class="row m-row" id="m-overlay-row" hidden><span><span class="lbl" data-i18n="overlayLbl">Kraken Mount libraries</span>
         <span class="hint" data-i18n="overlayHint">Turn off only for apps that bring their own system libraries (Playden titles): the game then runs without ampr-emu-ng and the bundled emulators.</span></span>
         <input type="checkbox" id="m-overlay"></label>
+      <label class="row m-row" id="m-ampr-row" hidden><span><span class="lbl" data-i18n="amprSwitch">ampr-emu-ng</span>
+        <span class="hint" data-i18n="amprHint">Turn off if the game closes right after the ampr-emu-ng notice.</span></span>
+        <input type="checkbox" id="m-ampr"></label>
       <div class="m-err" id="m-err"></div>
     </div>
     <div class="storage-line">
@@ -1074,6 +1077,7 @@ var MSG = {
     fBackport: 'Backport', yes: 'Yes', no: 'No', notBuilt: 'not built',
     playgoStub: 'PlayGo stub', playgoHint: 'Turn off if the game stays on a black screen; turn on if it asks to finish the download.',
     overlayLbl: 'Kraken Mount libraries', overlayHint: 'Turn off only for apps that bring their own system libraries (Playden titles): the game then runs without ampr-emu-ng and the bundled emulators.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'Turn off if the game closes right after the ampr-emu-ng notice.',
     szGame: 'Game', szDlc: 'DLC', szSave: 'Save', szCache: 'Cache',
     szPart: '{part} {size}', szNa: '{part} n/a', szTotal: 'Total {size}',
     sizesNone: 'Sizes unavailable', sizesLoading: 'Loading sizes...',
@@ -1233,6 +1237,7 @@ var MSG = {
     fBackport: 'Бэкпорт', yes: 'Да', no: 'Нет', notBuilt: 'не собран',
     playgoStub: 'Заглушка PlayGo', playgoHint: 'Выключите, если игра остаётся на чёрном экране; включите, если она просит завершить загрузку.',
     overlayLbl: 'Библиотеки Kraken Mount', overlayHint: 'Выключайте только для приложений со своими системными библиотеками (тайтлы Playden): тогда игра запускается без ampr-emu-ng и встроенных эмуляторов.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'Выключите, если игра закрывается сразу после уведомления ampr-emu-ng.',
     szGame: 'Игра', szDlc: 'DLC', szSave: 'Сохранения', szCache: 'Кеш',
     szPart: '{part} {size}', szNa: '{part} н/д', szTotal: 'Всего {size}',
     sizesNone: 'Размеры недоступны', sizesLoading: 'Загрузка размеров...',
@@ -1390,6 +1395,7 @@ var MSG = {
     fBackport: '向下移植', yes: '是', no: '否', notBuilt: '未构建',
     playgoStub: 'PlayGo 存根', playgoHint: '如果游戏停留在黑屏，请关闭；如果游戏要求完成下载，请开启。',
     overlayLbl: 'Kraken Mount 库', overlayHint: '仅对自带系统库的应用（Playden 游戏）关闭：关闭后游戏将在没有 ampr-emu-ng 和内置模拟器的情况下运行。',
+    amprSwitch: 'ampr-emu-ng', amprHint: '如果游戏在 ampr-emu-ng 通知后立即关闭，请关闭。',
     szGame: '游戏', szDlc: 'DLC', szSave: '存档', szCache: '缓存',
     szPart: '{part} {size}', szNa: '{part} 不可用', szTotal: '总计 {size}',
     sizesNone: '大小不可用', sizesLoading: '正在加载大小...',
@@ -1547,6 +1553,7 @@ var MSG = {
     fBackport: 'Backport', yes: 'Ja', no: 'Nein', notBuilt: 'nicht erstellt',
     playgoStub: 'PlayGo-Stub', playgoHint: 'Ausschalten, wenn das Spiel auf einem schwarzen Bildschirm bleibt; einschalten, wenn es verlangt, den Download abzuschließen.',
     overlayLbl: 'Kraken Mount-Bibliotheken', overlayHint: 'Nur für Apps ausschalten, die eigene Systembibliotheken mitbringen (Playden-Titel): Das Spiel läuft dann ohne ampr-emu-ng und die mitgelieferten Emulatoren.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'Ausschalten, wenn sich das Spiel direkt nach dem ampr-emu-ng-Hinweis schließt.',
     szGame: 'Spiel', szDlc: 'DLC', szSave: 'Spielstand', szCache: 'Cache',
     szPart: '{part} {size}', szNa: '{part} k. A.', szTotal: 'Gesamt {size}',
     sizesNone: 'Größen nicht verfügbar', sizesLoading: 'Größen werden geladen...',
@@ -1704,6 +1711,7 @@ var MSG = {
     fBackport: 'Backport', yes: 'Sí', no: 'No', notBuilt: 'sin crear',
     playgoStub: 'Stub de PlayGo', playgoHint: 'Desactívalo si el juego se queda en pantalla negra; actívalo si pide terminar la descarga.',
     overlayLbl: 'Bibliotecas de Kraken Mount', overlayHint: 'Desactívalo solo para apps que traen sus propias bibliotecas del sistema (títulos de Playden): el juego se ejecuta entonces sin ampr-emu-ng ni los emuladores incluidos.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'Desactívalo si el juego se cierra justo después del aviso de ampr-emu-ng.',
     szGame: 'Juego', szDlc: 'DLC', szSave: 'Partidas', szCache: 'Caché',
     szPart: '{part} {size}', szNa: '{part} n/d', szTotal: 'Total {size}',
     sizesNone: 'Tamaños no disponibles', sizesLoading: 'Cargando tamaños...',
@@ -1861,6 +1869,7 @@ var MSG = {
     fBackport: 'Backport', yes: 'Oui', no: 'Non', notBuilt: 'non créé',
     playgoStub: 'Stub PlayGo', playgoHint: "Désactivez-le si le jeu reste sur un écran noir ; activez-le s'il demande de terminer le téléchargement.",
     overlayLbl: 'Bibliothèques Kraken Mount', overlayHint: "Désactivez-les uniquement pour les apps qui apportent leurs propres bibliothèques système (titres Playden) : le jeu tourne alors sans ampr-emu-ng ni les émulateurs fournis.",
+    amprSwitch: 'ampr-emu-ng', amprHint: 'Désactivez-le si le jeu se ferme juste après la notification ampr-emu-ng.',
     szGame: 'Jeu', szDlc: 'DLC', szSave: 'Sauvegarde', szCache: 'Cache',
     szPart: '{part} {size}', szNa: '{part} n/d', szTotal: 'Total {size}',
     sizesNone: 'Tailles indisponibles', sizesLoading: 'Chargement des tailles...',
@@ -2018,6 +2027,7 @@ var MSG = {
     fBackport: 'バックポート', yes: 'はい', no: 'いいえ', notBuilt: '未作成',
     playgoStub: 'PlayGo スタブ', playgoHint: 'ゲームが黒い画面のままならオフに、ダウンロードの完了を求められたらオンにします。',
     overlayLbl: 'Kraken Mount のライブラリ', overlayHint: '独自のシステムライブラリを持つアプリ（Playden のタイトル）の場合のみオフにします。オフにするとゲームは ampr-emu-ng と同梱のエミュレーターなしで動作します。',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'ampr-emu-ng の通知の直後にゲームが終了する場合はオフにします。',
     szGame: 'ゲーム', szDlc: 'DLC', szSave: 'セーブ', szCache: 'キャッシュ',
     szPart: '{part} {size}', szNa: '{part} 不明', szTotal: '合計 {size}',
     sizesNone: 'サイズを取得できません', sizesLoading: 'サイズを読み込んでいます...',
@@ -2175,6 +2185,7 @@ var MSG = {
     fBackport: 'Backport', yes: 'Sim', no: 'Não', notBuilt: 'não criado',
     playgoStub: 'Stub do PlayGo', playgoHint: 'Desligue se o jogo ficar na tela preta; ligue se ele pedir para concluir o download.',
     overlayLbl: 'Bibliotecas do Kraken Mount', overlayHint: 'Desligue só para apps que trazem as próprias bibliotecas do sistema (títulos do Playden): o jogo então roda sem o ampr-emu-ng e os emuladores incluídos.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'Desligue se o jogo fechar logo após o aviso do ampr-emu-ng.',
     szGame: 'Jogo', szDlc: 'DLC', szSave: 'Salvamento', szCache: 'Cache',
     szPart: '{part} {size}', szNa: '{part} n/d', szTotal: 'Total {size}',
     sizesNone: 'Tamanhos indisponíveis', sizesLoading: 'Carregando tamanhos...',
@@ -2332,6 +2343,7 @@ var MSG = {
     fBackport: 'Backport', yes: 'Sì', no: 'No', notBuilt: 'non creata',
     playgoStub: 'Stub PlayGo', playgoHint: 'Disattivalo se il gioco resta su schermo nero; attivalo se chiede di completare il download.',
     overlayLbl: 'Librerie di Kraken Mount', overlayHint: 'Disattivale solo per le app che portano le proprie librerie di sistema (titoli Playden): il gioco gira allora senza ampr-emu-ng e gli emulatori inclusi.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'Disattivalo se il gioco si chiude subito dopo l\'avviso di ampr-emu-ng.',
     szGame: 'Gioco', szDlc: 'DLC', szSave: 'Salvataggi', szCache: 'Cache',
     szPart: '{part} {size}', szNa: '{part} n/d', szTotal: 'Totale {size}',
     sizesNone: 'Dimensioni non disponibili', sizesLoading: 'Caricamento delle dimensioni...',
@@ -2489,6 +2501,7 @@ var MSG = {
     fBackport: '백포트', yes: '예', no: '아니요', notBuilt: '생성 안 됨',
     playgoStub: 'PlayGo 스텁', playgoHint: '게임이 검은 화면에서 멈추면 끄고, 다운로드를 완료하라고 하면 켜세요.',
     overlayLbl: 'Kraken Mount 라이브러리', overlayHint: '자체 시스템 라이브러리를 포함한 앱(Playden 타이틀)에서만 끄세요. 끄면 게임이 ampr-emu-ng와 내장 에뮬레이터 없이 실행됩니다.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'ampr-emu-ng 알림 직후 게임이 종료되면 끄세요.',
     szGame: '게임', szDlc: 'DLC', szSave: '세이브', szCache: '캐시',
     szPart: '{part} {size}', szNa: '{part} 해당 없음', szTotal: '합계 {size}',
     sizesNone: '크기를 알 수 없음', sizesLoading: '크기를 불러오는 중...',
@@ -2646,6 +2659,7 @@ var MSG = {
     fBackport: 'الباكبورت', yes: 'نعم', no: 'لا', notBuilt: 'لم تُنشأ',
     playgoStub: 'بديل PlayGo', playgoHint: 'أوقفه إذا بقيت اللعبة على شاشة سوداء، وشغّله إذا طلبت إكمال التنزيل.',
     overlayLbl: 'مكتبات Kraken Mount', overlayHint: 'أوقفها فقط للتطبيقات التي تأتي بمكتبات النظام الخاصة بها (عناوين Playden): عندها تعمل اللعبة بدون ampr-emu-ng والمحاكيات المرفقة.',
+    amprSwitch: 'ampr-emu-ng', amprHint: 'أوقفه إذا أُغلقت اللعبة مباشرةً بعد إشعار ampr-emu-ng.',
     szGame: 'اللعبة', szDlc: 'DLC', szSave: 'الحفظ', szCache: 'الذاكرة المؤقتة',
     szPart: '{part} {size}', szNa: '{part} غير متاح', szTotal: 'الإجمالي {size}',
     sizesNone: 'الأحجام غير متاحة', sizesLoading: 'جارٍ تحميل الأحجام...',
@@ -2873,7 +2887,7 @@ var stopped = false, launchTried = false;
 var KINDS = [
   { id: 'all', key: 'kindAll' }, { id: 'pkg', label: 'FPKG' }, { id: 'installed', key: 'kindInstalled' },
   { id: 'zstd', label: 'ZSTD' },
-  { id: 'lz4', label: 'LZ4' }, { id: 'folder', key: 'kindFolders' }
+  { id: 'lz4', label: 'LZ4' }, { id: 'folder', key: 'kindFolders' }, { id: 'image', label: 'IMG' }
 ];
 function kindLabel(kind) { return kind.key ? t(kind.key) : kind.label; }
 var LABEL = { pending: 'stPending', checking: 'stChecking', building: 'stBuilding', ready: 'stReady', error: 'stError', duplicate: 'stDuplicate' };
@@ -2943,10 +2957,15 @@ function findGame(id) {
 function gameKind(g) {
   if (g.kind === 'pkg') return 'pkg';
   if (g.kind === 'installed') return 'installed';
+  if (g.image) return 'image';
   if (g.packing === 'lz4' || g.packing === 'zstd') return g.packing;
   return 'folder';
 }
-function badgeText(g) { return { pkg: 'PKG', installed: t('badgeInstalled'), folder: t('badgeFolder'), lz4: 'LZ4', zstd: 'ZSTD' }[gameKind(g)]; }
+// An image game's badge is its format (EXFAT, FFPKG, FFPFS, FFPFSC).
+function badgeText(g) {
+  if (gameKind(g) === 'image') return (String(g.image).split('.').pop() || 'IMG').toUpperCase();
+  return { pkg: 'PKG', installed: t('badgeInstalled'), folder: t('badgeFolder'), lz4: 'LZ4', zstd: 'ZSTD' }[gameKind(g)];
+}
 function gameName(g) { return g.title_name || g.title_id; }
 // Lower case without accents, so "pokemon" finds "Pokémon".
 function fold(s) {
@@ -3021,7 +3040,7 @@ function updateCover(c, g) {
 }
 
 function renderChips(games) {
-  var counts = { all: 0, pkg: 0, installed: 0, folder: 0, lz4: 0, zstd: 0 };
+  var counts = { all: 0, pkg: 0, installed: 0, folder: 0, lz4: 0, zstd: 0, image: 0 };
   games.forEach(function (g) { if (g && g.title_id) { counts.all++; counts[gameKind(g)]++; } });
   var box = $('chips');
   KINDS.forEach(function (kind, i) {
@@ -3707,6 +3726,13 @@ function renderModal() {
   $('m-overlay-row').hidden = g.kind !== 'folder' && !installed;
   if (!ov._busy) ov.checked = !g.overlay_off;
   ov.disabled = !!ov._busy || g.status === 'duplicate' || g.status === 'building';
+  // The ampr-emu-ng switch: folder games (a pkg needs ampr-emu-ng's pkg mode), not with the overlay
+  // off (no ampr-emu-ng then anyway). ponytail: shown while inject_ampr is off too, where it changes
+  // nothing until inject_ampr is back on.
+  var am = $('m-ampr');
+  $('m-ampr-row').hidden = g.kind !== 'folder' || !!g.overlay_off;
+  if (!am._busy) am.checked = !g.ampr_off;
+  am.disabled = !!am._busy || g.status === 'duplicate' || g.status === 'building';
 }
 function renderSizes(sizes) {
   var stack = $('m-stack'), legend = $('m-legend');
@@ -3849,6 +3875,7 @@ async function postSwitch(box, route, field) {
 }
 $('m-playgo').onchange = function () { postSwitch(this, 'playgo', 'playgo_off'); };
 $('m-overlay').onchange = function () { postSwitch(this, 'overlay', 'overlay_off'); };
+$('m-ampr').onchange = function () { postSwitch(this, 'ampr_title', 'ampr_off'); };
 $('m-delete').onclick = function () {
   var g = openTid && findGame(openTid);
   if (!g) return;
@@ -4397,7 +4424,7 @@ function moveInSettings(t, key) {
   else if (key === 'ArrowUp' && bannerButtons().length) bannerButtons()[0].focus();
   return true;
 }
-// The game sheet's controls in page order: its enabled buttons and the switches (PlayGo, overlay) when shown.
+// The game sheet's controls in page order: its enabled buttons and the switches (PlayGo, overlay, ampr-emu-ng) when shown.
 function modalControls() {
   return Array.prototype.slice.call(document.querySelectorAll('#modal button:not([disabled]), #modal input:not([disabled])'))
     .filter(function (c) { return !c.hidden && (c.tagName !== 'INPUT' || !c.parentNode.hidden); });

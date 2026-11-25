@@ -8,6 +8,7 @@
 #[macro_use]
 mod sys;
 mod i18n;
+mod image;
 mod install;
 mod installed;
 mod ampr_index;
@@ -49,6 +50,7 @@ fn inputs_key(src: &Source, s: &Settings) -> String {
     let mut k = cache::stamp(src, s).to_string();
     k += &format!("|playgo_off={}", s.playgo_off.contains(&src.title_id));
     k += &format!("|overlay_off={}", s.overlay_off.contains(&src.title_id));
+    k += &format!("|ampr_off={}", s.ampr_off.contains(&src.title_id));
     for p in cache::inputs(src, s) {
         let mtime = std::fs::metadata(&p).and_then(|m| m.modified()).ok();
         k += &format!("|{}={mtime:?}", p.display());
@@ -991,6 +993,17 @@ fn main() {
             state.forced.lock().unwrap().extend(keep);
         }
         publish(&state, &r);
+        // Image mounts no source of this scan uses (image deleted, moved or unplugged) are released
+        // before the games are processed, so a moved image's title sees its old folder gone (Moved).
+        // A game folder with a scan error (bad param.json) keeps its mount too: no remount every pass.
+        // A .ffpfsc game keeps both its container mount (image) and its inner mount (path).
+        let keep: HashSet<PathBuf> = r.games.iter().chain(&r.duplicates)
+            .flat_map(|g| [g.image.as_deref().map(image::mount_point), image::mount_of(&g.path)])
+            .flatten()
+            .chain(r.unstable.iter().map(|(p, _)| p.as_path()).filter(|p| image::is_image(p)).map(image::mount_point))
+            .chain(r.errors.iter().filter_map(|(p, _)| image::mount_of(p)))
+            .collect();
+        image::release_unused(&keep);
         // A source that left the scan (USB unplugged) goes through register::mount again when back.
         // A source still being copied stays registered (skipped this pass, not gone).
         registered.retain(|t| r.games.iter().any(|g| &g.title_id == t)
