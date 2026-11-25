@@ -7,6 +7,8 @@ format of [ShadowMount+](https://github.com/drakmor/ShadowMountPlus) added (`.ex
 `.ffpfsc`) and a per-game switch to turn off ampr-emu-ng for games that crash with it. All credit for
 Kraken Mount itself goes to its authors; the changes in this fork are listed in [What is new](#what-is-new).
 These changes are also offered upstream; if they are merged, use the original Kraken Mount.
+Kraken Mount Plus keeps Kraken Mount's data folder (`/data/krakenmount`), so your settings carry over;
+run one or the other, not both.
 
 A PS5 game mounter. It finds games on the internal SSD, the M.2 drive and USB drives.
 
@@ -17,9 +19,9 @@ For large, demanding games, use the zstd pack format: it performs better than FP
 
 ## How to
 
-1. Download `kraken-mount.elf` from [Releases](https://github.com/sakulsol/kraken-mount-plus/releases)
+1. Download `kraken-mount-plus.elf` from [Releases](https://github.com/sakulsol/kraken-mount-plus/releases)
    and send it to your jailbroken PS5 with the ELF loader (elfldr, port 9021) or payload-manager:
-   `nc -w 3 <ps5-ip> 9021 < kraken-mount.elf`. kstuff must be loaded, and ShadowMount+ must not be
+   `nc -w 3 <ps5-ip> 9021 < kraken-mount-plus.elf`. kstuff must be loaded, and ShadowMount+ must not be
    running: Kraken Mount waits until both are true.
 2. Put each game in a scan root, or in a folder directly inside one (for example
    `/data/homebrew/rpg/<game>`; deeper folders are not scanned, and on a drive root only the root itself):
@@ -41,7 +43,7 @@ game's details. Details:
 Caches live in `/data/krakenmount/caches/<TITLE_ID>`, settings in
 `/data/krakenmount/config.toml` and the log in `/data/krakenmount/kraken.log`.
 
-To build it yourself: `ps5/build.sh` (needs Docker), output `target/ps5/kraken-mount.elf`.
+To build it yourself: `ps5/build.sh` (needs Docker), output `target/ps5/kraken-mount.elf` (released as `kraken-mount-plus.elf`).
 
 ## What is new
 
